@@ -1,20 +1,100 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-gesture-handler'
+import { createStackNavigator } from '@react-navigation/stack'
+import {
+    Home,
+    LoginPage,
+    Map,
+    MapDetailsScreen,
+    MoviesList,
+    dummyEmailPassword,
+} from './src'
+import { NavigationContainer } from '@react-navigation/native'
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+const Stack = createStackNavigator()
+
+type UserContextType = {
+    userName: string
+    setUserName: (name: string) => void
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const UserContext = createContext<UserContextType>({
+    userName: '',
+    setUserName: () => {},
+})
+
+export const useUserContext = () => useContext(UserContext)
+
+export default function App() {
+    const [userName, setUserName] = useState<string>('')
+
+    const setDummyEmails = useCallback(async () => {
+        try {
+            const serializedData = JSON.stringify(dummyEmailPassword)
+            await AsyncStorage.setItem('emailPasswordData', serializedData)
+        } catch (error) {}
+    }, [])
+
+    useEffect(() => {
+        setDummyEmails()
+    }, [setDummyEmails])
+
+    return (
+        <UserContext.Provider value={{ userName, setUserName }}>
+            <NavigationContainer>
+                <Stack.Navigator
+                    initialRouteName={userName ? '/home' : '/auth'}
+                >
+                    {!userName && (
+                        <Stack.Screen
+                            name="/auth"
+                            component={LoginPage}
+                            options={{
+                                headerShown: false,
+                            }}
+                        />
+                    )}
+                    <Stack.Screen
+                        name="/home"
+                        component={Home}
+                        options={{
+                            headerShown: true,
+                            title: `Hi, ${userName}`,
+                        }}
+                    />
+                    <Stack.Screen
+                        name="map"
+                        component={Map}
+                        options={{
+                            title: 'Map View',
+                            headerShown: false,
+                        }}
+                    />
+                    <Stack.Screen
+                        name="mapDetails"
+                        component={MapDetailsScreen}
+                        options={{
+                            title: 'Map View',
+                            headerShown: false,
+                        }}
+                    />
+                    <Stack.Screen
+                        name="movies"
+                        component={MoviesList}
+                        options={{
+                            title: 'Map View',
+                            headerShown: false,
+                        }}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </UserContext.Provider>
+    )
+}
