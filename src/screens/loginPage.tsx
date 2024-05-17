@@ -11,23 +11,26 @@ import { useUserContext } from '../../App'
 import { StackNavigationProp } from '@react-navigation/stack'
 
 type FormData = {
+    name: string
     email: string
     password: string
 }
 
 const initialValue: FormData = {
+    name: '',
     email: '',
     password: '',
 }
 
 const schema = yup.object().shape({
+    name: yup.string().min(4).required('Name is Required'),
     email: yup.string().email('Invalid email').required('Email is required'),
     password: yup.string().min(8).required('Password is required'),
 })
 
 export const LoginPage: FC<any> = ({ navigation }) => {
     const [notExists, setNotExists] = useState<boolean>(false)
-    const { setUserName } = useUserContext()
+    const { setUserName, userName } = useUserContext()
     const {
         control,
         handleSubmit,
@@ -51,8 +54,8 @@ export const LoginPage: FC<any> = ({ navigation }) => {
                         x.email === data.email && x.password === data.password
                 )
                 if (isValid.length === 1) {
-                    setUserName(isValid?.[0].userName)
-                    navigation.navigate('/home')
+                    setUserName(data.name)
+                    navigation.navigate('home')
                 } else {
                     setNotExists(true)
                 }
@@ -61,11 +64,30 @@ export const LoginPage: FC<any> = ({ navigation }) => {
         [navigation, setUserName, setNotExists]
     )
 
+    useEffect(() => {
+        if (userName) {
+            navigation.navigate('home')
+        }
+    }, [navigation, userName])
+
     return (
         <FormProvider {...useForm<FormData>()}>
             <View
                 style={tw`w-full h-full flex justify-center bg-slate-500 p-8 gap-y-4 `}
             >
+                <View>
+                    <TextInput
+                        style={tw`h-14 w-full border-2 bg-white rounded-lg text-black text-2xl px-4`}
+                        placeholder="Name..."
+                        placeholderTextColor="black"
+                        onChangeText={(text) => setValue('name', text)}
+                    />
+                    {errors.name && (
+                        <Text style={{ color: '#EE4E4E' }}>
+                            {errors.name.message}
+                        </Text>
+                    )}
+                </View>
                 <View>
                     <TextInput
                         style={tw`h-14 w-full border-2 bg-white rounded-lg text-black text-2xl px-4`}

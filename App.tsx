@@ -17,6 +17,7 @@ import {
     useState,
 } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Button } from 'react-native'
 
 const Stack = createStackNavigator()
 
@@ -49,12 +50,10 @@ export default function App() {
     return (
         <UserContext.Provider value={{ userName, setUserName }}>
             <NavigationContainer>
-                <Stack.Navigator
-                    initialRouteName={userName ? '/home' : '/auth'}
-                >
+                <Stack.Navigator initialRouteName={userName ? 'home' : 'auth'}>
                     {!userName && (
                         <Stack.Screen
-                            name="/auth"
+                            name="auth"
                             component={LoginPage}
                             options={{
                                 headerShown: false,
@@ -62,12 +61,21 @@ export default function App() {
                         />
                     )}
                     <Stack.Screen
-                        name="/home"
+                        name="home"
                         component={Home}
-                        options={{
+                        options={({ navigation }) => ({
                             headerShown: true,
                             title: `Hi, ${userName}`,
-                        }}
+                            headerRight: () => (
+                                <Button
+                                    onPress={() => {
+                                        setUserName('')
+                                    }}
+                                    title="Logout"
+                                    color="#000"
+                                />
+                            ),
+                        })}
                     />
                     <Stack.Screen
                         name="map"
